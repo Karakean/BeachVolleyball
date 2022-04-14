@@ -15,7 +15,6 @@ public class GameObject {
     protected int height;
 
     @Getter
-    @Setter
     protected Point coordinates;
 
     @Getter
@@ -26,4 +25,10 @@ public class GameObject {
     @Setter
     protected int velocityY;
 
+    public void setCoordinateX(int x) {
+        this.coordinates.x = x;
+    }
+    public void setCoordinateY(int y) {
+        this.coordinates.y = y;
+    }
 }

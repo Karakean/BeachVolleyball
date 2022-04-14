@@ -52,6 +52,7 @@ public class Game extends Application{
         stage.setScene(new Scene(new StackPane(canvas)));
         stage.show();
         //tl.play();
+        //test
     }
 
     public void display(GraphicsContext gc){

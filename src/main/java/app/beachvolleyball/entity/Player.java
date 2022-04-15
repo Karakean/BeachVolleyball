@@ -1,8 +1,9 @@
 package app.beachvolleyball.entity;
 
 import java.awt.*;
+import java.io.Serializable;
 
-public class Player extends GameObject{
+public class Player extends GameObject {
 
     int ID;
 

@@ -13,6 +13,6 @@ public class Message implements Serializable {
 
     @Getter
     @Setter
-    private String key;
+    private String content;
 
 }

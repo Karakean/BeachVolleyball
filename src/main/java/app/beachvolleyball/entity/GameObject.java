@@ -4,9 +4,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.awt.*;
+import java.io.Serializable;
 
 
-public class GameObject {
+public class GameObject implements Serializable {
 
     @Getter
     protected int width;

@@ -1,5 +1,6 @@
 package app.beachvolleyball;
 
+import app.beachvolleyball.entity.Ball;
 import app.beachvolleyball.entity.Net;
 import app.beachvolleyball.entity.Player;
 import javafx.animation.KeyFrame;
@@ -18,11 +19,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
-import static app.beachvolleyball.Server.SCREEN_HEIGHT;
-import static app.beachvolleyball.Server.SCREEN_WIDTH;
-
-
 public class Client extends Application{
+
+    public static int SCREEN_WIDTH = 800;
+    public static int SCREEN_HEIGHT = 600;
 
     private Socket socket;
     private ObjectOutputStream oos;
@@ -31,9 +31,11 @@ public class Client extends Application{
     private boolean responded = false;
     final Object lock = new Object();
 
-    private Player player1;
-    private Player player2;
+    private Player[] players = new Player[2];
     private Net net;
+    private Ball ball;
+    private String key = "";
+    private boolean isPressed = false;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -48,9 +50,10 @@ public class Client extends Application{
                 return;
             }
             oos.writeObject("client ready");
-            player1 = (Player) ois.readObject();
-            player2 = (Player) ois.readObject();
+            players[0] = (Player) ois.readObject();
+            players[1] = (Player) ois.readObject();
             net = (Net) ois.readObject();
+            ball = (Ball) ois.readObject();
             if (!ois.readObject().equals("done")){
                 System.out.println("Error: server did not respond properly");
                 return;
@@ -68,18 +71,12 @@ public class Client extends Application{
         stage.setScene(new Scene(new StackPane(canvas)));
         stage.show();
         canvas.setOnKeyPressed(keyEvent -> {
-            switch (keyEvent.getCode().toString()) {
-                case "W" -> player1.setVelocityY(-2);
-                case "A" -> player1.setVelocityX(-2);
-                case "S" -> player1.setVelocityY(2);
-                case "D" -> player1.setVelocityX(2);
-            }
+            key = keyEvent.getCode().toString();
+            isPressed = true;
         });
         canvas.setOnKeyReleased(keyEvent -> {
-            switch (keyEvent.getCode().toString()) {
-                case "W", "S" -> player1.setVelocityY(0);
-                case "A", "D" -> player1.setVelocityX(0);
-            }
+            key = keyEvent.getCode().toString();
+            isPressed = false;
         });
 
         //real start
@@ -90,14 +87,13 @@ public class Client extends Application{
     }
 
     public void run(GraphicsContext gc){
-        display(gc, player1, player2, net);
+        display(gc);
         send();
     }
 
     public void send(){
         try {
-            oos.writeObject(player1.getVelocityX());
-            oos.writeObject(player1.getVelocityY());
+            oos.writeObject(new ClientMessage(key, isPressed));
             //System.out.println("wysylam mesydz ze trzeba robic pekydz");
             synchronized (lock) {
                 while (!responded) {
@@ -114,9 +110,8 @@ public class Client extends Application{
         new Thread(() -> {
             while (socket.isConnected()) {
                 try {
-                    player1.setCoordinateX((Integer) ois.readObject());
-                    player1.setCoordinateY((Integer) ois.readObject());
-                    //System.out.println("dostalem mesydz ze trzeba robic pekydz");
+                    ServerMessage serverMessage = (ServerMessage) ois.readObject();
+                    handleServerMessage(serverMessage);
                     synchronized (lock) {
                         responded = true;
                         lock.notifyAll();
@@ -132,15 +127,24 @@ public class Client extends Application{
         }).start();
     }
 
-    public static void display(GraphicsContext gc, Player player1, Player player2, Net net){
+    public void handleServerMessage(ServerMessage message){
+        players[0].setCoordinateX(message.getPlayer1Position().x);
+        players[0].setCoordinateY(message.getPlayer1Position().y);
+        players[1].setCoordinateX(message.getPlayer2Position().x);
+        players[1].setCoordinateY(message.getPlayer2Position().y);
+    }
+
+    public void display(GraphicsContext gc){
         gc.setFill(Color.LIGHTBLUE);
         gc.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+        gc.setFill(Color.RED);
+        gc.fillRect(players[0].getCoordinates().x, players[0].getCoordinates().y, players[0].getWidth(), players[0].getHeight());
+        gc.setFill(Color.GREEN);
+        gc.fillRect(players[1].getCoordinates().x, players[1].getCoordinates().y, players[1].getWidth(), players[1].getHeight());
         gc.setFill(Color.GRAY);
         gc.fillRect(net.getCoordinates().x, net.getCoordinates().y, net.getWidth(), net.getHeight());
-        gc.setFill(Color.RED);
-        gc.fillRect(player1.getCoordinates().x, player1.getCoordinates().y, player1.getWidth(), player1.getHeight());
-        gc.setFill(Color.GREEN);
-        gc.fillRect(player2.getCoordinates().x, player2.getCoordinates().y, player2.getWidth(), player2.getHeight());
+        gc.setFill(Color.WHITE);
+        gc.fillRect(ball.getCoordinates().x, ball.getCoordinates().y, ball.getWidth(), ball.getHeight());
     }
 
     public void close() throws IOException {

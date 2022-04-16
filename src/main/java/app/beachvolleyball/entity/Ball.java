@@ -7,7 +7,7 @@ public class Ball extends GameObject {
 
     public Ball(int x, int y) {
         coordinates = new Point(x, y);
-        width = height = 10;
+        width = height = 25;
         velocityX = velocityY = 0;
     }
 

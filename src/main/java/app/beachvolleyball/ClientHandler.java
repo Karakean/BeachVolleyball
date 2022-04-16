@@ -1,4 +1,4 @@
-package app.beachvolleyball.communication;
+package app.beachvolleyball;
 
 import app.beachvolleyball.entity.Net;
 import app.beachvolleyball.entity.Player;
@@ -9,7 +9,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Objects;
 
 @AllArgsConstructor
 public class ClientHandler implements Runnable{
@@ -38,21 +37,6 @@ public class ClientHandler implements Runnable{
                 player1.setCoordinateX(player1.getCoordinates().x + (Integer) ois.readObject());
                 player1.setCoordinateY(player1.getCoordinates().y + (Integer) ois.readObject());
             }
-//            while(socket.isConnected()){
-//                player1.setVelocityX((Integer) ois.readObject());
-//                //System.out.println(player1.getVelocityX());
-//                player1.setVelocityY((Integer) ois.readObject());
-//                //System.out.println(player1.getVelocityY());
-//                //System.out.println(player1.getCoordinates().x);
-//                //System.out.println(player1.getCoordinates().y);
-//                player1.setCoordinateX(player1.getCoordinates().x + player1.getVelocityX());
-//                player1.setCoordinateY(player1.getCoordinates().y + player1.getVelocityY());
-//                //System.out.println(player1.getCoordinates().x);
-//                //System.out.println(player1.getCoordinates().y);
-//
-//                oos.writeObject(player1.getCoordinates().x);
-//                oos.writeObject(player1.getCoordinates().y);
-//            }
         }
         catch (IOException | ClassNotFoundException ex){
             System.err.println(ex);

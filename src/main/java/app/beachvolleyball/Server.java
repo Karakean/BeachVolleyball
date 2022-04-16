@@ -1,6 +1,5 @@
-package app.beachvolleyball.communication;
+package app.beachvolleyball;
 
-import app.beachvolleyball.communication.ClientHandler;
 import app.beachvolleyball.entity.Net;
 import app.beachvolleyball.entity.Player;
 
@@ -18,9 +17,15 @@ public class Server {
     public static void main(String[] args) {
 
         try (ServerSocket server = new ServerSocket(9797)) {
+
             Socket socket = server.accept();
             Thread thread = new Thread(new ClientHandler(socket, player1, player2, net));
             thread.start();
+
+//            Socket socket1 = server.accept();
+//            Thread thread1 = new Thread(new ClientHandler(socket1, player2, player1, net));
+//            thread1.start();
+
         } catch (IOException ex) {
             System.err.println(ex);
         }

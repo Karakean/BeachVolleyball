@@ -8,6 +8,4 @@ module app.beachvolleyball {
 
     opens app.beachvolleyball to javafx.fxml;
     exports app.beachvolleyball;
-    exports app.beachvolleyball.communication;
-    opens app.beachvolleyball.communication to javafx.fxml;
 }

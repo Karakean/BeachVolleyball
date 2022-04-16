@@ -1,4 +1,4 @@
-package app.beachvolleyball.communication;
+package app.beachvolleyball;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

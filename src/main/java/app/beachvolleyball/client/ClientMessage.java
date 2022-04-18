@@ -1,4 +1,4 @@
-package app.beachvolleyball;
+package app.beachvolleyball.client;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,5 +18,9 @@ public class ClientMessage implements Serializable {
     @Getter
     @Setter
     private boolean isPressed;
+
+    @Getter
+    @Setter
+    private String textMessage;
 
 }

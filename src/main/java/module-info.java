@@ -7,5 +7,10 @@ module app.beachvolleyball {
 
 
     opens app.beachvolleyball to javafx.fxml;
-    exports app.beachvolleyball;
+    exports app.beachvolleyball.messenger;
+    opens app.beachvolleyball.messenger to javafx.fxml;
+    exports app.beachvolleyball.server;
+    opens app.beachvolleyball.server to javafx.fxml;
+    exports app.beachvolleyball.client;
+    opens app.beachvolleyball.client to javafx.fxml;
 }

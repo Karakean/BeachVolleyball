@@ -1,4 +1,4 @@
-package app.beachvolleyball;
+package app.beachvolleyball.server;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,5 +19,9 @@ public class ServerMessage implements Serializable {
     @Getter
     @Setter
     private Point player2Position;
+
+    @Getter
+    @Setter
+    private String verifiedMessage;
 
 }

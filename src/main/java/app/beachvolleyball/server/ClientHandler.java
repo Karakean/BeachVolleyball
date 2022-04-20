@@ -4,7 +4,6 @@ import app.beachvolleyball.client.ClientMessage;
 import app.beachvolleyball.entity.Ball;
 import app.beachvolleyball.entity.Net;
 import app.beachvolleyball.entity.Player;
-import app.beachvolleyball.messenger.MessengerController;
 import lombok.AllArgsConstructor;
 import lombok.Setter;
 

@@ -50,12 +50,6 @@ public class MessengerController implements Serializable {
         String tf = textField.getText();
         String msg = "Player" + (clientID+1) + ": " + tf;
         if (!tf.isEmpty()){
-//            HBox hBox = new HBox();
-//            hBox.setAlignment(Pos.CENTER_LEFT);
-//            Text text = new Text(msg);
-//            TextFlow textFlow = new TextFlow(text);
-//            hBox.getChildren().add(textFlow);
-//            messageBox.getChildren().add(hBox);
             currentMessage = msg;
             textField.clear();
         }

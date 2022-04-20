@@ -90,7 +90,7 @@ public class Client extends Application{
         stage.setTitle("Beach Volleyball");
         stage.setResizable(false);
 
-        FXMLLoader fxmlLoader = new FXMLLoader(Client.class.getResource("/messenger.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(Client.class.getResource("/app/beachvolleyball/messenger-view.fxml"));
         Node node = fxmlLoader.load();
         messengerController = fxmlLoader.getController();
         messengerController.setClientID(clientID);
@@ -178,9 +178,8 @@ public class Client extends Application{
         players[0].setCoordinateY(message.getPlayer1Position().y);
         players[1].setCoordinateX(message.getPlayer2Position().x);
         players[1].setCoordinateY(message.getPlayer2Position().y);
-        String msg = message.getVerifiedMessage();
-        if(!msg.isEmpty())
-            Platform.runLater(() -> messengerController.receiveMessage(msg));
+        if(!message.getVerifiedMessage().isEmpty())
+            Platform.runLater(() -> messengerController.receiveMessage(message.getVerifiedMessage()));
     }
 
     public void close() throws IOException {

@@ -178,6 +178,8 @@ public class Client extends Application{
         players[0].setCoordinateY(message.getPlayer1Position().y);
         players[1].setCoordinateX(message.getPlayer2Position().x);
         players[1].setCoordinateY(message.getPlayer2Position().y);
+        ball.setCoordinateX(message.getBallPosition().x);
+        ball.setCoordinateY(message.getBallPosition().y);
         if(!message.getVerifiedMessage().isEmpty())
             Platform.runLater(() -> messengerController.receiveMessage(message.getVerifiedMessage()));
     }

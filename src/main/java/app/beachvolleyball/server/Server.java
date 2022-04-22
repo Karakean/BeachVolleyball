@@ -18,8 +18,8 @@ public class Server {
 
     public static void main(String[] args) throws IOException {
 
-        players[0] = new Player(1,(int)(0.25 * SCREEN_WIDTH - 50), SCREEN_HEIGHT - 100);
-        players[1] = new Player(2,(int)(0.75 * SCREEN_WIDTH), SCREEN_HEIGHT - 100);
+        players[0] = new Player((int)(0.25 * SCREEN_WIDTH - 50), SCREEN_HEIGHT - 100);
+        players[1] = new Player((int)(0.75 * SCREEN_WIDTH), SCREEN_HEIGHT - 100);
 
         try (ServerSocket server = new ServerSocket(9797)) {
 

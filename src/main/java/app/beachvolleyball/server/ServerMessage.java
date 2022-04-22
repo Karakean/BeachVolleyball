@@ -22,6 +22,10 @@ public class ServerMessage implements Serializable {
 
     @Getter
     @Setter
+    private Point ballPosition;
+
+    @Getter
+    @Setter
     private String verifiedMessage;
 
 }

@@ -70,21 +70,23 @@ public class ClientHandler implements Runnable{
     }
 
     public void handleClientMessage(ClientMessage message){
-        if (message.isPressed()) {
-            switch (message.getKey()) {
-                case "SPACE" -> {
-                    if(!players[clientID].isJump()){
-                        players[clientID].setJump(true);
-                        players[clientID].setVelocityY(-JUMP_POWER);
-                    }
-                }
-                case "A" -> players[clientID].setVelocityX(-2);
-                case "D" -> players[clientID].setVelocityX(2);
-            }
+        if(message.isAPressed()){
+            players[clientID].setVelocityX(-2);
         }
-        else{
-            switch (message.getKey()) {
-                case "A", "D" -> players[clientID].setVelocityX(0);
+        else if (!message.isDPressed()){
+            players[clientID].setVelocityX(0);
+        }
+        if(message.isDPressed()){
+            players[clientID].setVelocityX(2);
+        }
+        else if (!message.isAPressed()){
+            players[clientID].setVelocityX(0);
+        }
+
+        if(message.isSpacePressed()){
+            if(!players[clientID].isJump()){
+                players[clientID].setJump(true);
+                players[clientID].setVelocityY(-JUMP_POWER);
             }
         }
 
@@ -120,6 +122,7 @@ public class ClientHandler implements Runnable{
         ball.setCoordinateY(ball.getCoordinates().y + ball.getVelocityY());
         if(ball.getCoordinates().y >= GROUND_Y - ball.getHeight()){
             ball.setCoordinateY(GROUND_Y - ball.getHeight());
+            ball.setVelocityY(-10);
         }
         ball.setVelocityY(ball.getVelocityY() + GRAVITY);
     }

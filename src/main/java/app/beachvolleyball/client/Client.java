@@ -18,6 +18,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -44,7 +46,9 @@ public class Client extends Application{
     private Ball ball;
 
     private String key = "";
-    private boolean isPressed = false;
+    private boolean dPressed;
+    private boolean aPressed;
+    private boolean spacePressed;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -97,15 +101,23 @@ public class Client extends Application{
 
         Canvas canvas = new Canvas(SCREEN_WIDTH, SCREEN_HEIGHT);
         canvas.setFocusTraversable(true);
+
+        aPressed = dPressed = spacePressed = false;
         canvas.setOnKeyPressed(keyEvent -> {
             key = keyEvent.getCode().toString();
-            System.out.println("key pressed" + key);
-            isPressed = true;
+            switch (key) {
+                case "A" -> aPressed = true;
+                case "D" -> dPressed = true;
+                case "SPACE" -> spacePressed = true;
+            }
         });
         canvas.setOnKeyReleased(keyEvent -> {
             key = keyEvent.getCode().toString();
-            System.out.println("key released" + key);
-            isPressed = false;
+            switch (key) {
+                case "A" -> aPressed = false;
+                case "D" -> dPressed = false;
+                case "SPACE" -> spacePressed = false;
+            }
         });
         canvas.setOnMouseClicked(e -> canvas.requestFocus());
         GraphicsContext gc = canvas.getGraphicsContext2D();
@@ -115,7 +127,6 @@ public class Client extends Application{
         Scene scene = new Scene(hbox);
         stage.setScene(scene);
         stage.show();
-
 
         return gc;
     }
@@ -140,7 +151,7 @@ public class Client extends Application{
 
     public void send(){
         try {
-            oos.writeObject(new ClientMessage(key, isPressed, messengerController.getCurrentMessage()));
+            oos.writeObject(new ClientMessage(dPressed, aPressed, spacePressed, messengerController.getCurrentMessage()));
             messengerController.setCurrentMessage("");
             synchronized (lock) {
                 while (!responded) {

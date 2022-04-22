@@ -13,11 +13,16 @@ public class ClientMessage implements Serializable {
 
     @Getter
     @Setter
-    private String key;
+    private boolean dPressed;
 
     @Getter
     @Setter
-    private boolean isPressed;
+    private boolean aPressed;
+
+    @Getter
+    @Setter
+    private boolean spacePressed;
+
 
     @Getter
     @Setter

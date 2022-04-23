@@ -44,7 +44,10 @@ public class Client extends Application{
     private Ball ball;
 
     private String key = "";
-    private boolean isPressed = false;
+    //private boolean isPressed = false;
+    private boolean dPressed;
+    private boolean aPressed;
+    private boolean spacePressed;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -99,11 +102,21 @@ public class Client extends Application{
         canvas.setFocusTraversable(true);
         canvas.setOnKeyPressed(keyEvent -> {
             key = keyEvent.getCode().toString();
-            isPressed = true;
+//            isPressed = true;
+            switch (key) {
+                case "A" -> aPressed = true;
+                case "D" -> dPressed = true;
+                case "SPACE" -> spacePressed = true;
+            }
         });
         canvas.setOnKeyReleased(keyEvent -> {
             key = keyEvent.getCode().toString();
-            isPressed = false;
+//            isPressed = false;
+            switch (key){
+                case "A" -> aPressed = false;
+                case "D" -> dPressed = false;
+                case "SPACE" -> spacePressed = false;
+            }
         });
         canvas.setOnMouseClicked(e -> canvas.requestFocus());
         GraphicsContext gc = canvas.getGraphicsContext2D();
@@ -138,9 +151,8 @@ public class Client extends Application{
 
     public void send(){
         try {
-            oos.writeObject(new ClientMessage(key, isPressed, messengerController.getCurrentMessage()));
+            oos.writeObject(new ClientMessage(aPressed, dPressed, spacePressed, messengerController.getCurrentMessage()));
             messengerController.setCurrentMessage("");
-            //System.out.println("wysylam mesydz ze trzeba robic pekydz");
             synchronized (lock) {
                 while (!responded) {
                     lock.wait();

@@ -13,6 +13,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.*;
+import java.util.List;
 
 @AllArgsConstructor
 public class ClientHandler implements Runnable{
@@ -29,6 +30,7 @@ public class ClientHandler implements Runnable{
     private int clientID;
     @Setter
     private String verifiedMessage;
+    private List<String> swearWords;
 
     @Override
     public void run() {
@@ -87,29 +89,65 @@ public class ClientHandler implements Runnable{
 //        players[clientID].setCoordinateX(players[clientID].getCoordinates().x + players[clientID].getVelocityX());
 //        players[clientID].setCoordinateY(players[clientID].getCoordinates().y + players[clientID].getVelocityY());
 
-        if (message.isPressed()) {
-            switch (message.getKey()) {
-                case "SPACE" -> {
-                    if(!players[clientID].isJump()){
-                        players[clientID].setJump(true);
-                        players[clientID].setVelocityY(-JUMP_POWER);
-                    }
-                }
-                case "A" -> players[clientID].setVelocityX(-2);
-                case "D" -> players[clientID].setVelocityX(2);
-            }
+//        if (message.isPressed()) {
+//            switch (message.getKey()) {
+//                case "SPACE" -> {
+//                    if(!players[clientID].isJump()){
+//                        players[clientID].setJump(true);
+//                        players[clientID].setVelocityY(-JUMP_POWER);
+//                    }
+//                }
+//                case "A" -> players[clientID].setVelocityX(-2);
+//                case "D" -> players[clientID].setVelocityX(2);
+//            }
+//        }
+//        else{
+//            switch (message.getKey()) {
+//                case "A", "D" -> players[clientID].setVelocityX(0);
+//            }
+//        }
+
+        if(message.isAPressed()){
+            players[clientID].setVelocityX(-2);
         }
-        else{
-            switch (message.getKey()) {
-                case "A", "D" -> players[clientID].setVelocityX(0);
+        else if (!message.isDPressed()){
+            players[clientID].setVelocityX(0);
+        }
+        if(message.isDPressed()){
+            players[clientID].setVelocityX(2);
+        }
+        else if (!message.isAPressed()){
+            players[clientID].setVelocityX(0);
+        }
+
+        if(message.isSpacePressed()){
+            if(!players[clientID].isJump()){
+                players[clientID].setJump(true);
+                players[clientID].setVelocityY(-JUMP_POWER);
             }
         }
 
-        String msg = message.getTextMessage();
-        if(!msg.isEmpty() && isMessageValid(msg)){
+        if(!message.getTextMessage().isEmpty())
+            verifyMessage(message);
+    }
+
+    public void verifyMessage(ClientMessage message){
+        new Thread(() -> {
+            String content = message.getTextMessage();
+            if(!isMessageValid(content)){
+                content = "Player" + (clientID+1) + ": ***** ***";
+            }
             for(ClientHandler ch : clientHandlers)
-                ch.setVerifiedMessage(msg);
+                ch.setVerifiedMessage(content);
+        }).start();
+    }
+
+    private boolean isMessageValid(String message){
+        for(String swear : swearWords){
+            if(message.contains(swear))
+                return false;
         }
+        return true;
     }
 
     private void update(){
@@ -117,7 +155,7 @@ public class ClientHandler implements Runnable{
         if (players[clientID].getCoordinates().x <= clientID * SCREEN_WIDTH / 2){
             players[clientID].setCoordinateX(clientID * SCREEN_WIDTH / 2);
         }
-        if (players[clientID]. getCoordinates().x >= (clientID + 1) * SCREEN_WIDTH / 2 - players[clientID].getWidth()){
+        if (players[clientID].getCoordinates().x >= (clientID + 1) * SCREEN_WIDTH / 2 - players[clientID].getWidth()){
             players[clientID].setCoordinateX((clientID + 1) * SCREEN_WIDTH / 2 - players[clientID].getWidth());
         }
         players[clientID].setCoordinateY(players[clientID].getCoordinates().y + players[clientID].getVelocityY());
@@ -135,9 +173,5 @@ public class ClientHandler implements Runnable{
             ball.setCoordinateY(GROUND_Y - ball.getHeight());
         }
         ball.setVelocityY(ball.getVelocityY() + GRAVITY);
-    }
-
-    private boolean isMessageValid(String message){
-        return true;
     }
 }

@@ -46,11 +46,10 @@ public class MessengerController implements Serializable {
 //    @FXML
 //    private Button sendButton;
 
-    public void sendMessage() throws IOException {
+    public void sendMessage() {
         String tf = textField.getText();
-        String msg = "Player" + (clientID+1) + ": " + tf;
         if (!tf.isEmpty()){
-            currentMessage = msg;
+            currentMessage = "Player" + (clientID+1) + ": " + tf;
             textField.clear();
         }
     }

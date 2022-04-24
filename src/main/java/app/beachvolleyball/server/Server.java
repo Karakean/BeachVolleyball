@@ -16,7 +16,7 @@ public class Server {
     public static final int PLAYER_HEIGHT = 75;
     private static final Player[] players = new Player[2];
     private static final Net net = new Net(SCREEN_WIDTH/2 - 10, SCREEN_HEIGHT/2);
-    private static final Ball ball = new Ball((int)(0.25 * SCREEN_WIDTH - 50), SCREEN_HEIGHT/2);
+    private static final Ball ball = new Ball((int)(0.25 * SCREEN_WIDTH - 50), 0);
 
     public static void main(String[] args) throws IOException {
 

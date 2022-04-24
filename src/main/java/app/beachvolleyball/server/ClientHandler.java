@@ -4,7 +4,6 @@ import app.beachvolleyball.client.ClientMessage;
 import app.beachvolleyball.entity.Ball;
 import app.beachvolleyball.entity.Net;
 import app.beachvolleyball.entity.Player;
-import app.beachvolleyball.messenger.MessengerController;
 import lombok.AllArgsConstructor;
 import lombok.Setter;
 
@@ -20,8 +19,10 @@ public class ClientHandler implements Runnable{
     public static int SCREEN_WIDTH = 800;
     public static int SCREEN_HEIGHT = 600;
     public static int GROUND_Y = SCREEN_HEIGHT - 25;
-    public static int GRAVITY = 1;
+    public static float GRAVITY = 1;
     public static int JUMP_POWER = 20;
+    public static float HIT_FORCE_X = 3;
+    public static float HIT_FORCE_Y = 5;
     public static ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
     private Socket socket;
     private Player[] players;
@@ -102,13 +103,22 @@ public class ClientHandler implements Runnable{
     }
 
     private void update(){
+        updatePlayerPosition();
+        updateBallPosition();
+    }
+
+    private void updatePlayerPosition(){
         players[clientID].setCoordinateX(players[clientID].getCoordinates().x + players[clientID].getVelocityX());
-        if (players[clientID].getCoordinates().x <= clientID * SCREEN_WIDTH / 2){
-            players[clientID].setCoordinateX(clientID * SCREEN_WIDTH / 2);
+        float left_border = clientID * (SCREEN_WIDTH + ball.getWidth())/2;
+        float right_border = (clientID + 1) * (float)SCREEN_WIDTH/2  - players[clientID].getWidth()
+                + (clientID - 1) * ball.getWidth()/2;
+        if (players[clientID].getCoordinates().x <= left_border){
+            players[clientID].setCoordinateX(left_border);
         }
-        if (players[clientID]. getCoordinates().x >= (clientID + 1) * SCREEN_WIDTH / 2 - players[clientID].getWidth()){
-            players[clientID].setCoordinateX((clientID + 1) * SCREEN_WIDTH / 2 - players[clientID].getWidth());
+        if (players[clientID]. getCoordinates().x >= right_border){
+            players[clientID].setCoordinateX(right_border);
         }
+
         players[clientID].setCoordinateY(players[clientID].getCoordinates().y + players[clientID].getVelocityY());
         if (players[clientID].isJump()){
             players[clientID].setVelocityY(players[clientID].getVelocityY() + GRAVITY);
@@ -118,12 +128,71 @@ public class ClientHandler implements Runnable{
                 players[clientID].setJump(false);
             }
         }
+    }
 
-        ball.setCoordinateY(ball.getCoordinates().y + ball.getVelocityY());
+    private void updateBallPosition(){
+        //player collision
+        if(ballPlayerCollision()){
+            bounceBall();
+        }
+        //ground collision
         if(ball.getCoordinates().y >= GROUND_Y - ball.getHeight()){
             ball.setCoordinateY(GROUND_Y - ball.getHeight());
-            ball.setVelocityY(-10);
+            ball.setVelocityY(0);
+            if(ball.getCoordinates().x < SCREEN_WIDTH / 2) {
+                //green scores
+            }
+            else{
+                //red scores
+            }
+            //reset ball position
         }
-        ball.setVelocityY(ball.getVelocityY() + GRAVITY);
+        else{
+            ball.setVelocityY(ball.getVelocityY() + 0.05f * GRAVITY);
+        }
+
+        //wall and net collision
+        int left_wall = 0;
+        int right_wall = SCREEN_WIDTH - (int)ball.getWidth();
+        int net_left = (int)(net.getCoordinates().x - ball.getWidth());
+        int net_right = (int)(net.getCoordinates().x + net.getWidth());
+        if(ball.getCoordinates().x <= left_wall){
+            ball.setCoordinateX(left_wall);
+            ball.setVelocityX(-ball.getVelocityX());
+        }
+        else if(ball.getCoordinates().x >= right_wall){
+            ball.setCoordinateX(right_wall);
+            ball.setVelocityX(-ball.getVelocityX());
+        }
+        else if(ball.getCoordinates().y + ball.getHeight() >= net.getHeight()){
+            if(ball.getCoordinates().x >= net_left && ball.getCoordinates().x <= net_right){
+                if(ball.getCoordinates().x <= (SCREEN_WIDTH - ball.getWidth())/2)
+                    ball.setCoordinateX(net_left);
+                else
+                    ball.setCoordinateX(net_right);
+                ball.setVelocityX(-ball.getVelocityX());
+            }
+        }
+        //position update
+        ball.setCoordinateY(ball.getCoordinates().y + ball.getVelocityY());
+        ball.setCoordinateX(ball.getCoordinates().x + ball.getVelocityX());
+    }
+
+    private boolean ballPlayerCollision(){
+        return ball.getCoordinates().y <= players[clientID].getCoordinates().y + players[clientID].getHeight()
+                && ball.getCoordinates().y + ball.getHeight() >= players[clientID].getCoordinates().y
+                && ball.getCoordinates().x <= players[clientID].getCoordinates().x + players[clientID].getWidth()
+                && ball.getCoordinates().x + ball.getWidth() >= players[clientID].getCoordinates().x;
+    }
+
+    private void bounceBall(){
+        ball.setVelocityX(direction() * HIT_FORCE_X + 0.1f * players[clientID].getVelocityX());
+        ball.setVelocityY(-HIT_FORCE_Y + 0.1f * players[clientID].getVelocityY());
+    }
+
+    private int direction(){
+        if(clientID == 0)
+            return 1;
+        return -1;
     }
 }

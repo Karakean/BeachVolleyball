@@ -1,17 +1,9 @@
-package app.beachvolleyball.messenger;
+package app.beachvolleyball.chat;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -19,13 +11,9 @@ import javafx.scene.text.TextFlow;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.net.URL;
-import java.util.ResourceBundle;
 
-public class MessengerController implements Serializable {
+public class ChatController implements Serializable {
 
     @Setter
     private int clientID;

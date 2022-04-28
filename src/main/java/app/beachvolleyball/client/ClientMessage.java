@@ -21,15 +21,16 @@ public class ClientMessage implements Serializable {
 
     @Getter
     @Setter
-    private boolean aPressed;
+    private boolean left;
 
     @Getter
     @Setter
-    private boolean dPressed;
+    private boolean right;
 
     @Getter
     @Setter
-    private boolean spacePressed;
+    private boolean jump;
+
 
     @Getter
     @Setter

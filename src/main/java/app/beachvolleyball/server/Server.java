@@ -10,7 +10,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Scanner;
 
 public class Server {
@@ -19,13 +18,13 @@ public class Server {
     public static final int SCREEN_HEIGHT = 600;
     private static final Player[] players = new Player[2];
     private static final Net net = new Net(SCREEN_WIDTH/2 - 10, SCREEN_HEIGHT/2);
-    private static final Ball ball = new Ball((int)(0.25 * SCREEN_WIDTH - 50), SCREEN_HEIGHT/2);
+    private static final Ball ball = new Ball((int)(0.25 * SCREEN_WIDTH - 50), 0);
     private static final List<String> swearWords = new ArrayList<>();
 
     public static void main(String[] args) throws IOException {
 
-        players[0] = new Player((int)(0.25 * SCREEN_WIDTH - 50), SCREEN_HEIGHT - 100);
-        players[1] = new Player((int)(0.75 * SCREEN_WIDTH), SCREEN_HEIGHT - 100);
+        players[0] = new Player((int)(0.25 * SCREEN_WIDTH - 50), SCREEN_HEIGHT - 100, 1);
+        players[1] = new Player((int)(0.75 * SCREEN_WIDTH), SCREEN_HEIGHT - 100, 2);
 
         Scanner scanner = new Scanner(new File("src/main/resources/app/beachvolleyball/swear-words.txt"));
 
@@ -43,7 +42,7 @@ public class Server {
             thread1.start();
 
         } catch (IOException ex) {
-            System.err.println(ex);
+            ex.printStackTrace();
         }
     }
 }

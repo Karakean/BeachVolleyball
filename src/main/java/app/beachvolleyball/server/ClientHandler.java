@@ -20,8 +20,10 @@ public class ClientHandler implements Runnable{
     private static final int SCREEN_WIDTH = 800;
     private static final int SCREEN_HEIGHT = 600;
     private static final int GROUND_Y = SCREEN_HEIGHT - 25;
-    private static final int GRAVITY = 1;
     private static final int JUMP_POWER = 20;
+    private static final float GRAVITY = 1.0f;
+    public static final float HIT_FORCE_X = 3.0f;
+    public static final float HIT_FORCE_Y = 5.0f;
     private static final ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
     private Socket socket;
     private Player[] players;
@@ -45,17 +47,28 @@ public class ClientHandler implements Runnable{
             oos.writeObject(clientID);
             oos.writeObject(players[0]);
             oos.writeObject(players[1]);
-            oos.writeObject(net);
             oos.writeObject(ball);
             oos.writeObject("done");
+
+            new Thread(() -> {
+                while(socket.isConnected()){
+                    ClientMessage received = null;
+                    try {
+                        received = (ClientMessage) ois.readObject();
+                    } catch (IOException | ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    assert received != null;
+                    handleClientMessage(received);
+                }
+            }).start();
+
             while(socket.isConnected()){
                 oos.writeObject(new ServerMessage(new Point(players[0].getCoordinates().x, players[0].getCoordinates().y),
                         new Point(players[1].getCoordinates().x, players[1].getCoordinates().y),
                         new Point(ball.getCoordinates().x, ball.getCoordinates().y),
                         verifiedMessage));
                 verifiedMessage = "";
-                ClientMessage received = (ClientMessage) ois.readObject();
-                handleClientMessage(received);
                 update();
             }
         }
@@ -72,55 +85,20 @@ public class ClientHandler implements Runnable{
     }
 
     public void handleClientMessage(ClientMessage message){
-//        if (message.isPressed()) {
-//            switch (message.getKey()) {
-//                case "W" -> players[clientID].setVelocityY(-2);
-//                case "A" -> players[clientID].setVelocityX(-2);
-//                case "S" -> players[clientID].setVelocityY(2);
-//                case "D" -> players[clientID].setVelocityX(2);
-//            }
-//        }
-//        else{
-//            switch (message.getKey()) {
-//                case "W", "S" -> players[clientID].setVelocityY(0);
-//                case "A", "D" -> players[clientID].setVelocityX(0);
-//            }
-//        }
-//        players[clientID].setCoordinateX(players[clientID].getCoordinates().x + players[clientID].getVelocityX());
-//        players[clientID].setCoordinateY(players[clientID].getCoordinates().y + players[clientID].getVelocityY());
-
-//        if (message.isPressed()) {
-//            switch (message.getKey()) {
-//                case "SPACE" -> {
-//                    if(!players[clientID].isJump()){
-//                        players[clientID].setJump(true);
-//                        players[clientID].setVelocityY(-JUMP_POWER);
-//                    }
-//                }
-//                case "A" -> players[clientID].setVelocityX(-2);
-//                case "D" -> players[clientID].setVelocityX(2);
-//            }
-//        }
-//        else{
-//            switch (message.getKey()) {
-//                case "A", "D" -> players[clientID].setVelocityX(0);
-//            }
-//        }
-
-        if(message.isAPressed()){
+        if(message.isLeft()){
             players[clientID].setVelocityX(-2);
         }
-        else if (!message.isDPressed()){
+        else if (!message.isRight()){
             players[clientID].setVelocityX(0);
         }
-        if(message.isDPressed()){
+        if(message.isRight()){
             players[clientID].setVelocityX(2);
         }
-        else if (!message.isAPressed()){
+        else if (!message.isLeft()){
             players[clientID].setVelocityX(0);
         }
 
-        if(message.isSpacePressed()){
+        if(message.isJump()){
             if(!players[clientID].isJump()){
                 players[clientID].setJump(true);
                 players[clientID].setVelocityY(-JUMP_POWER);
@@ -151,13 +129,22 @@ public class ClientHandler implements Runnable{
     }
 
     private void update(){
+        updatePlayerPosition();
+        updateBallPosition();
+    }
+
+    private void updatePlayerPosition(){
         players[clientID].setCoordinateX(players[clientID].getCoordinates().x + players[clientID].getVelocityX());
-        if (players[clientID].getCoordinates().x <= clientID * SCREEN_WIDTH / 2){
-            players[clientID].setCoordinateX(clientID * SCREEN_WIDTH / 2);
+        float left_border = clientID * (SCREEN_WIDTH + ball.getWidth())/2;
+        float right_border = (clientID + 1) * (float)SCREEN_WIDTH/2  - players[clientID].getWidth()
+                + (clientID - 1) * ball.getWidth()/2;
+        if (players[clientID].getCoordinates().x <= left_border){
+            players[clientID].setCoordinateX(left_border);
         }
-        if (players[clientID].getCoordinates().x >= (clientID + 1) * SCREEN_WIDTH / 2 - players[clientID].getWidth()){
-            players[clientID].setCoordinateX((clientID + 1) * SCREEN_WIDTH / 2 - players[clientID].getWidth());
+        if (players[clientID]. getCoordinates().x >= right_border){
+            players[clientID].setCoordinateX(right_border);
         }
+
         players[clientID].setCoordinateY(players[clientID].getCoordinates().y + players[clientID].getVelocityY());
         if (players[clientID].isJump()){
             players[clientID].setVelocityY(players[clientID].getVelocityY() + GRAVITY);
@@ -167,11 +154,71 @@ public class ClientHandler implements Runnable{
                 players[clientID].setJump(false);
             }
         }
+    }
 
-        ball.setCoordinateY(ball.getCoordinates().y + ball.getVelocityY());
+    private void updateBallPosition(){
+        //player collision
+        if(ballPlayerCollision()){
+            bounceBall();
+        }
+        //ground collision
         if(ball.getCoordinates().y >= GROUND_Y - ball.getHeight()){
             ball.setCoordinateY(GROUND_Y - ball.getHeight());
+            ball.setVelocityY(0);
+            if(ball.getCoordinates().x < SCREEN_WIDTH / 2) {
+                //green scores
+            }
+            else{
+                //red scores
+            }
+            //reset ball position
         }
-        ball.setVelocityY(ball.getVelocityY() + GRAVITY);
+        else{
+            ball.setVelocityY(ball.getVelocityY() + 0.05f * GRAVITY);
+        }
+
+        //wall and net collision
+        int left_wall = 0;
+        int right_wall = SCREEN_WIDTH - (int)ball.getWidth();
+        int net_left = (int)(net.getCoordinates().x - ball.getWidth());
+        int net_right = (int)(net.getCoordinates().x + net.getWidth());
+        if(ball.getCoordinates().x <= left_wall){
+            ball.setCoordinateX(left_wall);
+            ball.setVelocityX(-ball.getVelocityX());
+        }
+        else if(ball.getCoordinates().x >= right_wall){
+            ball.setCoordinateX(right_wall);
+            ball.setVelocityX(-ball.getVelocityX());
+        }
+        else if(ball.getCoordinates().y + ball.getHeight() >= net.getHeight()){
+            if(ball.getCoordinates().x >= net_left && ball.getCoordinates().x <= net_right){
+                if(ball.getCoordinates().x <= (SCREEN_WIDTH - ball.getWidth())/2)
+                    ball.setCoordinateX(net_left);
+                else
+                    ball.setCoordinateX(net_right);
+                ball.setVelocityX(-ball.getVelocityX());
+            }
+        }
+        //position update
+        ball.setCoordinateY(ball.getCoordinates().y + ball.getVelocityY());
+        ball.setCoordinateX(ball.getCoordinates().x + ball.getVelocityX());
+    }
+
+    private boolean ballPlayerCollision(){
+        return ball.getCoordinates().y <= players[clientID].getCoordinates().y + players[clientID].getHeight()
+                && ball.getCoordinates().y + ball.getHeight() >= players[clientID].getCoordinates().y
+                && ball.getCoordinates().x <= players[clientID].getCoordinates().x + players[clientID].getWidth()
+                && ball.getCoordinates().x + ball.getWidth() >= players[clientID].getCoordinates().x;
+    }
+
+    private void bounceBall(){
+        ball.setVelocityX(direction() * HIT_FORCE_X + 0.1f * players[clientID].getVelocityX());
+        ball.setVelocityY(-HIT_FORCE_Y + 0.1f * players[clientID].getVelocityY());
+    }
+
+    private int direction(){
+        if(clientID == 0)
+            return 1;
+        return -1;
     }
 }

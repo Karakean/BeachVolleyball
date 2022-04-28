@@ -1,9 +1,8 @@
 package app.beachvolleyball.client;
-
 import app.beachvolleyball.entity.Ball;
 import app.beachvolleyball.entity.Net;
 import app.beachvolleyball.entity.Player;
-import app.beachvolleyball.messenger.MessengerController;
+import app.beachvolleyball.chat.ChatController;
 import app.beachvolleyball.server.ServerMessage;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -14,15 +13,14 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.layout.HBox;
-import javafx.scene.paint.Color;
+import javafx.scene.image.Image;
+import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
+import java.net.URL;
 
 public class Client extends Application{
 
@@ -34,20 +32,22 @@ public class Client extends Application{
     private ObjectInputStream ois;
     private int clientID;
 
-    private MessengerController messengerController;
+    private ChatController chatController;
 
-    private boolean responded = false;
-    final Object lock = new Object();
+    //private boolean responded = false;
+    //final Object lock = new Object();
 
     private final Player[] players = new Player[2];
-    private Net net;
     private Ball ball;
+    private Image ballImage;
+    private Image redImage;
+    private Image greenImage;
 
     private String key = "";
-    //private boolean isPressed = false;
-    private boolean dPressed;
-    private boolean aPressed;
-    private boolean spacePressed;
+    private boolean left;
+    private boolean right;
+    private boolean jump;
+
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -75,7 +75,6 @@ public class Client extends Application{
             clientID = (Integer) ois.readObject();
             players[0] = (Player) ois.readObject();
             players[1] = (Player) ois.readObject();
-            net = (Net) ois.readObject();
             ball = (Ball) ois.readObject();
             if (!ois.readObject().equals("done")){
                 System.out.println("Error: server did not respond properly");
@@ -95,35 +94,51 @@ public class Client extends Application{
 
         FXMLLoader fxmlLoader = new FXMLLoader(Client.class.getResource("/app/beachvolleyball/messenger-view.fxml"));
         Node node = fxmlLoader.load();
-        messengerController = fxmlLoader.getController();
-        messengerController.setClientID(clientID);
+        chatController = fxmlLoader.getController();
+        chatController.setClientID(clientID);
 
         Canvas canvas = new Canvas(SCREEN_WIDTH, SCREEN_HEIGHT);
         canvas.setFocusTraversable(true);
         canvas.setOnKeyPressed(keyEvent -> {
             key = keyEvent.getCode().toString();
-//            isPressed = true;
             switch (key) {
-                case "A" -> aPressed = true;
-                case "D" -> dPressed = true;
-                case "SPACE" -> spacePressed = true;
+                case "A" -> left = true;
+                case "D" -> right = true;
+                case "SPACE" -> jump = true;
             }
+            send();
         });
         canvas.setOnKeyReleased(keyEvent -> {
             key = keyEvent.getCode().toString();
-//            isPressed = false;
             switch (key){
-                case "A" -> aPressed = false;
-                case "D" -> dPressed = false;
-                case "SPACE" -> spacePressed = false;
+                case "A" -> left = false;
+                case "D" -> right = false;
+                case "SPACE" -> jump = false;
             }
+            send();
         });
         canvas.setOnMouseClicked(e -> canvas.requestFocus());
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
-        HBox hbox = new HBox(canvas);
-        hbox.getChildren().add(node);
-        Scene scene = new Scene(hbox);
+        HBox container = new HBox(canvas);
+
+        URL url = getClass().getResource("/app/beachvolleyball/background.jpg");
+        BackgroundImage backgroundImage= new BackgroundImage(new Image(String.valueOf(url),
+                SCREEN_WIDTH,SCREEN_HEIGHT,false,true),
+                BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT,
+                BackgroundSize.DEFAULT);
+        container.setBackground(new Background(backgroundImage));
+
+        url = getClass().getResource(ball.getImagePath());
+        ballImage = new Image(String.valueOf(url));
+        url = getClass().getResource(players[0].getImagePath());
+        redImage = new Image(String.valueOf(url));
+        url = getClass().getResource(players[1].getImagePath());
+        greenImage = new Image(String.valueOf(url));
+
+        container.getChildren().add(node);
+        Scene scene = new Scene(container);
+
         stage.setScene(scene);
         stage.show();
 
@@ -133,33 +148,27 @@ public class Client extends Application{
 
     public void run(GraphicsContext gc){
         display(gc);
-        send();
+        //send();
     }
 
     public void display(GraphicsContext gc){
-        gc.setFill(Color.LIGHTBLUE);
-        gc.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-        gc.setFill(Color.RED);
-        gc.fillRect(players[0].getCoordinates().x, players[0].getCoordinates().y, players[0].getWidth(), players[0].getHeight());
-        gc.setFill(Color.GREEN);
-        gc.fillRect(players[1].getCoordinates().x, players[1].getCoordinates().y, players[1].getWidth(), players[1].getHeight());
-        gc.setFill(Color.GRAY);
-        gc.fillRect(net.getCoordinates().x, net.getCoordinates().y, net.getWidth(), net.getHeight());
-        gc.setFill(Color.WHITE);
-        gc.fillRect(ball.getCoordinates().x, ball.getCoordinates().y, ball.getWidth(), ball.getHeight());
+        gc.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+        gc.drawImage(redImage, players[0].getCoordinates().x, players[0].getCoordinates().y);
+        gc.drawImage(greenImage, players[1].getCoordinates().x, players[1].getCoordinates().y);
+        gc.drawImage(ballImage, ball.getCoordinates().x, ball.getCoordinates().y);
     }
 
     public void send(){
         try {
-            oos.writeObject(new ClientMessage(aPressed, dPressed, spacePressed, messengerController.getCurrentMessage()));
-            messengerController.setCurrentMessage("");
-            synchronized (lock) {
-                while (!responded) {
-                    lock.wait();
-                }
-                responded = false;
-            }
-        }catch (IOException | InterruptedException e){
+            oos.writeObject(new ClientMessage(left, right, jump, chatController.getCurrentMessage()));
+            chatController.setCurrentMessage("");
+//            synchronized (lock) {
+//                while (!responded) {
+//                    lock.wait();
+//                }
+//                responded = false;
+//            }
+        }catch (IOException e){//| InterruptedException e){
             e.printStackTrace();
         }
     }
@@ -170,10 +179,10 @@ public class Client extends Application{
                 try {
                     ServerMessage serverMessage = (ServerMessage) ois.readObject();
                     handleServerMessage(serverMessage);
-                    synchronized (lock) {
-                        responded = true;
-                        lock.notifyAll();
-                    }
+//                    synchronized (lock) {
+//                        responded = true;
+//                        lock.notifyAll();
+//                    }
                 } catch (IOException | ClassNotFoundException e) {
                     try {
                         close();
@@ -193,7 +202,7 @@ public class Client extends Application{
         ball.setCoordinateX(message.getBallPosition().x);
         ball.setCoordinateY(message.getBallPosition().y);
         if(!message.getVerifiedMessage().isEmpty())
-            Platform.runLater(() -> messengerController.receiveMessage(message.getVerifiedMessage()));
+            Platform.runLater(() -> chatController.receiveMessage(message.getVerifiedMessage()));
     }
 
     public void close() throws IOException {

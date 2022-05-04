@@ -38,9 +38,6 @@ public class ChatController implements Serializable {
             currentMessage = "Player" + (clientID+1) + ": " + tf;
             textField.clear();
         }
-        else{
-            textField.clear();
-        }
     }
 
     public void receiveMessage(String message){

@@ -1,6 +1,5 @@
 package app.beachvolleyball;
 import app.beachvolleyball.entity.Ball;
-import app.beachvolleyball.entity.Net;
 import app.beachvolleyball.entity.Player;
 import app.beachvolleyball.chat.ChatController;
 import javafx.animation.KeyFrame;
@@ -8,6 +7,7 @@ import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
@@ -15,6 +15,10 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import java.io.IOException;
@@ -46,8 +50,12 @@ public class Client extends Application{
     private boolean right;
     private boolean jump;
 
-    int gameState = 0;
+    int gameState = 2;
     final Object lock = new Object();
+
+    int player1Score = 0;
+    int player2Score = 0;
+
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -56,7 +64,7 @@ public class Client extends Application{
 
         GraphicsContext gc = initGraphics(stage);
 
-        Timeline tl = new Timeline(new KeyFrame(Duration.millis(10), x->run(gc)));
+        Timeline tl = new Timeline(new KeyFrame(Duration.millis(10), x->display(gc)));
         tl.setCycleCount(Timeline.INDEFINITE);
         tl.play();
         receive();
@@ -115,7 +123,8 @@ public class Client extends Application{
             send();
         });
         canvas.setOnMouseClicked(keyEvent -> {
-            gameState = 2;
+            if(gameState == 0)
+                gameState = 1;
         });
         canvas.setOnKeyReleased(keyEvent -> {
             key = keyEvent.getCode().toString();
@@ -128,6 +137,14 @@ public class Client extends Application{
         });
         canvas.setOnMouseClicked(e -> canvas.requestFocus());
         GraphicsContext gc = canvas.getGraphicsContext2D();
+//        gc.setTextAlign(TextAlignment.CENTER);
+//        gc.setTextBaseline(VPos.TOP);
+        //URL url = getClass().getResource("/app/beachvolleyball/kongtext-font.ttf");
+        //Font myFont = Font.loadFont(getClass().getResource("/app/beachvolleyball/FONT.ttf").toExternalForm(), 50);
+        gc.setTextAlign(TextAlignment.CENTER);
+        gc.setFont(new Font("Impact", 40));
+        gc.fillText("test", (float)SCREEN_WIDTH/2 - 10, 100);
+
 
         HBox container = new HBox(canvas);
 
@@ -164,14 +181,29 @@ public class Client extends Application{
     }
 
     public void display(GraphicsContext gc){
-        gc.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-        gc.drawImage(redImage, players[0].getCoordinates().x, players[0].getCoordinates().y);
-        gc.drawImage(greenImage, players[1].getCoordinates().x, players[1].getCoordinates().y);
-        gc.drawImage(ballImage, ball.getCoordinates().x, ball.getCoordinates().y);
+        if(gameState == 2) {
+            gc.clearRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+            gc.setFill(Color.GREEN);
+            gc.fillText(player1Score + " : " + player2Score, (float) SCREEN_WIDTH / 2 - 10, 100);
+            gc.drawImage(redImage, players[0].getCoordinates().x, players[0].getCoordinates().y);
+            gc.drawImage(greenImage, players[1].getCoordinates().x, players[1].getCoordinates().y);
+            gc.drawImage(ballImage, ball.getCoordinates().x, ball.getCoordinates().y);
+        }
+        else if (gameState == 1){
+            gc.setFill(Color.GREEN);
+            gc.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+            gc.setFill(Color.WHITE);
+            gc.fillText("You are ready. Waiting for the other player...", (float) SCREEN_WIDTH / 2 , (float)SCREEN_HEIGHT/2);
+        }
+        else {
+            gc.setFill(Color.RED);
+            gc.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+            gc.setFill(Color.WHITE);
+            gc.fillText("If you are ready, press the mouse button.", (float) SCREEN_WIDTH / 2 , (float)SCREEN_HEIGHT/2);
+        }
     }
 
     public void send(){
-        gameState = 1;
         try {
             oos.writeObject(new ClientMessage(left, right, jump, chatController.getCurrentMessage()));
             chatController.setCurrentMessage("");
@@ -179,7 +211,17 @@ public class Client extends Application{
             e.printStackTrace();
         }
     }
+    //            synchronized (lock) {
+//                while (!responded) {
+//                    lock.wait();
+//                }
+//                responded = false;
+//            }
 
+    //                    synchronized (lock) {
+//                        responded = true;
+//                        lock.notifyAll();
+//                    }
     public void receive() {
         new Thread(() -> {
             while (socket.isConnected()) {
@@ -205,6 +247,10 @@ public class Client extends Application{
         players[1].setCoordinateY(message.getPlayer2Position().y);
         ball.setCoordinateX(message.getBallPosition().x);
         ball.setCoordinateY(message.getBallPosition().y);
+        player1Score = message.getPlayer1Score();
+        player2Score = message.getPlayer2Score();
+        if (gameState != 2 && message.getConnectedClients() == 2)
+            gameState = 2;
         if(!message.getVerifiedMessage().isEmpty())
             Platform.runLater(() -> chatController.receiveMessage(message.getVerifiedMessage()));
     }

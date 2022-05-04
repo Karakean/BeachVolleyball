@@ -16,6 +16,9 @@ public class Player extends GameObject {
     @Setter
     private boolean jump;
 
+    @Getter
+    @Setter
+    private int score;
 
     public Player(int startX, int startY, int playerID) {
         coordinates = new Point(startX, startY);
@@ -24,6 +27,7 @@ public class Player extends GameObject {
         velocityX = 0;
         velocityY = 0;
         jump = false;
+        score = 0;
         if(playerID == 1)
             imagePath = "/app/beachvolleyball/red.png";
         else

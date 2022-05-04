@@ -24,6 +24,7 @@ public class ClientHandler implements Runnable{
     public static final float HIT_FORCE_X = 3.0f;
     public static final float HIT_FORCE_Y = 5.0f;
     private static final ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
+    private static byte connectedClients = 0;
     private Socket socket;
     private Player[] players;
     private Net net;
@@ -48,6 +49,7 @@ public class ClientHandler implements Runnable{
             oos.writeObject(players[1]);
             oos.writeObject(ball);
             oos.writeObject("done");
+            connectedClients+=1;
             new Thread(() -> {
                 while(socket.isConnected()){
                     ClientMessage received = null;
@@ -64,7 +66,7 @@ public class ClientHandler implements Runnable{
                 oos.writeObject(new ServerMessage(new Point(players[0].getCoordinates().x, players[0].getCoordinates().y),
                         new Point(players[1].getCoordinates().x, players[1].getCoordinates().y),
                         new Point(ball.getCoordinates().x, ball.getCoordinates().y),
-                        verifiedMessage));
+                        verifiedMessage, players[0].getScore(), players[1].getScore(), connectedClients));
                 verifiedMessage = "";
                 update();
                 Thread.sleep(10);
@@ -83,13 +85,13 @@ public class ClientHandler implements Runnable{
 
     public void handleClientMessage(ClientMessage message){
         if(message.isLeft()){
-            players[clientID].setVelocityX(-2.0f);
+            players[clientID].setVelocityX(-3.0f);
         }
         else if (!message.isRight()){
             players[clientID].setVelocityX(0);
         }
         if(message.isRight()){
-            players[clientID].setVelocityX(2.0f);
+            players[clientID].setVelocityX(3.0f);
         }
         else if (!message.isLeft()){
             players[clientID].setVelocityX(0);
@@ -163,13 +165,14 @@ public class ClientHandler implements Runnable{
             ball.setCoordinateY(GROUND_Y - ball.getHeight());
             ball.setVelocityY(0);
             if(ball.getCoordinates().x < SCREEN_WIDTH / 2) {
-                //green scores
+                players[1].setScore(players[1].getScore()+1);
             }
             else{
-                //red scores
+                players[0].setScore(players[0].getScore()+1);
             }
             ball.setCoordinateX((float)(0.25 * SCREEN_WIDTH - 50));
             ball.setCoordinateY(0);
+            ball.setVelocityY(0);
         }
         else{
             ball.setVelocityY(ball.getVelocityY() + 0.05f * GRAVITY);

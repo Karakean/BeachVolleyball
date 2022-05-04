@@ -31,6 +31,7 @@ public class Server {
 
         while(scanner.hasNextLine())
             swearWords.add(scanner.nextLine());
+
         try (ServerSocket server = new ServerSocket(1234)) {
 
             Socket socket = server.accept();

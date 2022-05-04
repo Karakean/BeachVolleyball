@@ -28,4 +28,16 @@ public class ServerMessage implements Serializable {
     @Setter
     private String verifiedMessage;
 
+    @Getter
+    @Setter
+    private int player1Score;
+
+    @Getter
+    @Setter
+    private int player2Score;
+
+    @Getter
+    @Setter
+    private byte connectedClients;
+
 }

@@ -32,7 +32,7 @@ public class Server {
         while(scanner.hasNextLine())
             swearWords.add(scanner.nextLine());
 
-        try (ServerSocket server = new ServerSocket(1234)) {
+        try (ServerSocket server = new ServerSocket(9797)) {
 
             Socket socket = server.accept();
             Thread thread = new Thread(new ClientHandler(socket, players, net, ball, 0, "", swearWords));

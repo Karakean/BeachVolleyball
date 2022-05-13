@@ -21,8 +21,8 @@ public class ClientHandler implements Runnable{
     private static final int GROUND_Y = SCREEN_HEIGHT - 25;
     private static final int JUMP_POWER = 20;
     private static final float GRAVITY = 1.0f;
-    public static final float HIT_FORCE_X = 3.0f;
-    public static final float HIT_FORCE_Y = 5.0f;
+    public static final float HIT_FORCE_X = 5.0f;
+    public static final float HIT_FORCE_Y = 7.0f;
     private static final ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
     private static byte connectedClients = 0;
     private Socket socket;
@@ -62,17 +62,31 @@ public class ClientHandler implements Runnable{
                 }
             }).start();
 
+            new Thread(() -> {
+                while(socket.isConnected()){
+                    try {
+                        oos.writeObject(new ServerMessage(new Point(players[0].getCoordinates().x, players[0].getCoordinates().y),
+                                new Point(players[1].getCoordinates().x, players[1].getCoordinates().y),
+                                new Point(ball.getCoordinates().x, ball.getCoordinates().y),
+                                verifiedMessage, players[0].getScore(), players[1].getScore(), connectedClients));
+                    } catch (IOException ignored) {
+                    }
+                    verifiedMessage = "";
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+
             while(socket.isConnected()){
-                oos.writeObject(new ServerMessage(new Point(players[0].getCoordinates().x, players[0].getCoordinates().y),
-                        new Point(players[1].getCoordinates().x, players[1].getCoordinates().y),
-                        new Point(ball.getCoordinates().x, ball.getCoordinates().y),
-                        verifiedMessage, players[0].getScore(), players[1].getScore(), connectedClients));
-                verifiedMessage = "";
-                update();
+                updatePlayerPosition();
+                updateBallPosition();
                 Thread.sleep(10);
             }
         }
-        catch (IOException | ClassNotFoundException | InterruptedException ex){//| InterruptedException ex){
+        catch (IOException | ClassNotFoundException | InterruptedException ex){// | InterruptedException ex){//| InterruptedException ex){
             ex.printStackTrace();
         } finally {
             try {
@@ -175,7 +189,7 @@ public class ClientHandler implements Runnable{
             ball.setVelocityY(0);
         }
         else{
-            ball.setVelocityY(ball.getVelocityY() + 0.05f * GRAVITY);
+            ball.setVelocityY(ball.getVelocityY() + 0.03f * GRAVITY);
         }
 
         //wall and net collision

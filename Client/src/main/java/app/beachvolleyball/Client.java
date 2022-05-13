@@ -72,7 +72,7 @@ public class Client extends Application{
 
     private boolean initConnection() throws IOException {
         try {
-            socket = new Socket("localhost", 1234);
+            socket = new Socket("192.168.0.110", 9797);
             oos = new ObjectOutputStream(socket.getOutputStream());
             ois = new ObjectInputStream(socket.getInputStream());
             if (!ois.readObject().equals("server ready")){

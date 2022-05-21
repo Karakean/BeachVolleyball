@@ -23,7 +23,6 @@ public class ClientMessage implements Serializable {
     @Setter
     private boolean jump;
 
-
     @Getter
     @Setter
     private String textMessage;

@@ -47,6 +47,7 @@ public class ChatController implements Serializable {
         TextFlow textFlow = new TextFlow(text);
         hBox.getChildren().add(textFlow);
         messageBox.getChildren().add(hBox);
+        scrollPane.setVvalue(1.0);
     }
 
 }

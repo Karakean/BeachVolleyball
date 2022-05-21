@@ -51,6 +51,9 @@ public class ClientHandler implements Runnable{
             oos.writeObject("done");
             connectedClients+=1;
             new Thread(() -> {
+                while (connectedClients < 2) {
+                    Thread.onSpinWait();
+                }
                 while(socket.isConnected()){
                     ClientMessage received = null;
                     try {
@@ -63,6 +66,9 @@ public class ClientHandler implements Runnable{
             }).start();
 
             new Thread(() -> {
+                while (connectedClients < 2) {
+                    Thread.onSpinWait();
+                }
                 while(socket.isConnected()){
                     try {
                         oos.writeObject(new ServerMessage(new Point(players[0].getCoordinates().x, players[0].getCoordinates().y),
@@ -80,6 +86,9 @@ public class ClientHandler implements Runnable{
                 }
             }).start();
 
+            while (connectedClients < 2) {
+                Thread.onSpinWait();
+            }
             while(socket.isConnected()){
                 updatePlayerPosition();
                 if (clientID==0)
@@ -92,11 +101,23 @@ public class ClientHandler implements Runnable{
         } finally {
             try {
                 socket.close();
+                connectedClients-=1;
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
         }
     }
+    //            synchronized (lock) {
+//                while (!responded) {
+//                    lock.wait();
+//                }
+//                responded = false;
+//            }
+
+    //                    synchronized (lock) {
+//                        responded = true;
+//                        lock.notifyAll();
+//                    }
 
     public void handleClientMessage(ClientMessage message){
         if(message.isLeft()){

@@ -11,14 +11,6 @@ public class ClientMessage implements Serializable {
 
     static final long serialVersionUID = 2137L;
 
-//    @Getter
-//    @Setter
-//    private String key;
-
-//    @Getter
-//    @Setter
-//    private boolean isPressed;
-
     @Getter
     @Setter
     private boolean left;

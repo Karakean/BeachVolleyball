@@ -22,7 +22,7 @@ public class ClientHandler implements Runnable{
     private static final int JUMP_POWER = 20;
     private static final float GRAVITY = 1.0f;
     public static final float HIT_FORCE_X = 5.0f;
-    public static final float HIT_FORCE_Y = 7.0f;
+    public static final float HIT_FORCE_Y = 4.0f;
     private static final ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
     private static byte connectedClients = 0;
     private Socket socket;
@@ -82,7 +82,8 @@ public class ClientHandler implements Runnable{
 
             while(socket.isConnected()){
                 updatePlayerPosition();
-                updateBallPosition();
+                if (clientID==0)
+                    updateBallPosition();
                 Thread.sleep(10);
             }
         }
@@ -143,7 +144,8 @@ public class ClientHandler implements Runnable{
 
     private void update(){
         updatePlayerPosition();
-        updateBallPosition();
+        if (clientID==0)
+            updateBallPosition();
     }
 
     private void updatePlayerPosition(){
@@ -171,8 +173,9 @@ public class ClientHandler implements Runnable{
 
     private void updateBallPosition(){
         //player collision
-        if(ballPlayerCollision()){
-            bounceBall();
+        int result = ballPlayerCollision();
+        if(result!=0){
+            bounceBall(result-1);
         }
         //ground collision
         if(ball.getCoordinates().y >= GROUND_Y - ball.getHeight()){
@@ -219,20 +222,25 @@ public class ClientHandler implements Runnable{
         ball.setCoordinateX(ball.getCoordinates().x + ball.getVelocityX());
     }
 
-    private boolean ballPlayerCollision(){
-        return ball.getCoordinates().y <= players[clientID].getCoordinates().y + players[clientID].getHeight()
-                && ball.getCoordinates().y + ball.getHeight() >= players[clientID].getCoordinates().y
-                && ball.getCoordinates().x <= players[clientID].getCoordinates().x + players[clientID].getWidth()
-                && ball.getCoordinates().x + ball.getWidth() >= players[clientID].getCoordinates().x;
+    private int ballPlayerCollision(){
+        for(int i=0; i<2; i++){
+            if (ball.getCoordinates().y <= players[i].getCoordinates().y + players[i].getHeight()
+                    && ball.getCoordinates().y + ball.getHeight() >= players[i].getCoordinates().y
+                    && ball.getCoordinates().x <= players[i].getCoordinates().x + players[i].getWidth()
+                    && ball.getCoordinates().x + ball.getWidth() >= players[i].getCoordinates().x){
+                return i+1;
+            }
+        }
+        return 0;
     }
 
-    private void bounceBall(){
-        ball.setVelocityX(direction() * HIT_FORCE_X + 0.1f * players[clientID].getVelocityX());
-        ball.setVelocityY(-HIT_FORCE_Y + 0.1f * players[clientID].getVelocityY());
+    private void bounceBall(int colliding_player){
+        ball.setVelocityX(direction(colliding_player) * HIT_FORCE_X + 0.1f * players[colliding_player].getVelocityX());
+        ball.setVelocityY(-HIT_FORCE_Y + 0.1f * players[colliding_player].getVelocityY());
     }
 
-    private int direction(){
-        if(clientID == 0)
+    private int direction(int colliding_player){
+        if(colliding_player == 0)
             return 1;
         return -1;
     }
